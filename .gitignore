@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# Ignore builds, caches, local settings, etc.
+**/build/
+**/out/
+**/.vs/
+**/.vscode/
+**/.cache/
