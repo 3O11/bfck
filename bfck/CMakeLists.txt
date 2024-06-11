@@ -5,7 +5,14 @@ target_compile_features(bfck
         cxx_std_23
 )
 
+target_include_directories(bfck
+    PRIVATE
+        "Include"
+)
+
 target_sources(bfck
     PRIVATE
-        "Source/Main.cpp"
+        "Source/Utils.cpp"
+        "Source/Interpreter.cpp"
+        "bfck.cpp"
 )
