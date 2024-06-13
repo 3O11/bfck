@@ -1,5 +1,7 @@
 #include "Utils.hpp"
 
+#include <fstream>
+
 namespace BFCK::Utils
 {
     std::expected<std::string, FileReadError> ReadFile(const fs::path& filepath)

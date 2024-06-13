@@ -3,6 +3,8 @@
 
 #include "Base.hpp"
 
+#include <expected>
+
 namespace BFCK::Utils
 {
     enum class FileReadError : std::uint8_t

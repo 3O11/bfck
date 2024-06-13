@@ -2,22 +2,23 @@
 #define BFCK_INTERPRETER_HPP
 
 #include "Base.hpp"
-
-#include <vector>
+#include "Memory.hpp"
 
 namespace BFCK
 {
     class Interpreter
     {
     public:
-        Interpreter();
+        Interpreter()
+            : mMemory{}
+        {}
 
         void Run(std::string_view code);
         void RunFile(const fs::path& filepath);
 
         void Reset();
     private:
-        std::vector<std::uint8_t> mMemory;
+        Memory mMemory;
     };
 }
 

@@ -1,69 +1,127 @@
 #include "Interpreter.hpp"
 #include "Utils.hpp"
+#include "Instructions.hpp"
 
-#include <cstdio>
+#include <print>
+#include <vector>
 
 namespace BFCK
 {
-    Interpreter::Interpreter()
-        : mMemory(30000, 0)
-    {}
+    namespace
+    {
+        std::vector<Instruction> Parse(std::string_view code)
+        {
+            std::string source {code};
+
+            // Remove ignored characters
+            std::erase_if(source, [](char c) {
+                return std::string("+-<>[],.").find(c) == std::string::npos;
+            });
+
+            std::vector<Instruction> instructions;
+
+            // Parse
+            if (!source.empty())
+            {
+                using IType = Instruction::Type;
+
+                Instruction inProgress(IType::Nop);
+                std::vector<std::uint64_t> loopBeginStack;
+
+                auto pushPrevInstruction = [&instructions, &inProgress](IType type) {
+                    if (inProgress.GetType() != IType::Nop) {
+                        instructions.push_back(inProgress);
+                    }
+                    inProgress = Instruction(type);
+                };
+
+                std::uint64_t i = 0;
+                while (i < source.size()) {
+                    switch (source[i]) {
+                        break; case '+': {
+                            if (inProgress.GetType() == IType::Increment) {
+                                ++inProgress.Value();
+                            }
+                            else {
+                                pushPrevInstruction(IType::Increment);
+                            }
+                        }
+                        break; case '-': {
+                            if (inProgress.GetType() == IType::Decrement) {
+                                ++inProgress.Value();
+                            }
+                            else {
+                                pushPrevInstruction(IType::Decrement);
+                            }
+                        }
+                        break; case '>': {
+                            if (inProgress.GetType() == IType::IncrementPtr) {
+                                ++inProgress.Value();
+                            }
+                            else {
+                                pushPrevInstruction(IType::IncrementPtr);
+                            }
+                        }
+                        break; case '<': {
+                            if (inProgress.GetType() == IType::DecrementPtr) {
+                                ++inProgress.Value();
+                            }
+                            else {
+                                pushPrevInstruction(IType::DecrementPtr);
+                            }
+                        }
+                        break; case '[': {
+                            pushPrevInstruction(IType::Nop);
+                            instructions.emplace_back(IType::LoopBegin);
+                            loopBeginStack.push_back(instructions.size() - 1);
+                        }
+                        break; case ']': {
+                            pushPrevInstruction(IType::Nop);
+                            if (instructions.back().GetType() == IType::LoopBegin) {
+                                // Empty loops
+                                instructions.pop_back();
+                                loopBeginStack.pop_back();
+                            }
+                            else if (instructions.back().GetType() == IType::Decrement
+                                 &&  instructions.back().Value() == 1
+                                 &&  instructions[instructions.size() - 2].GetType() == IType::LoopBegin) {
+                                // Clear loops
+                                instructions.pop_back();
+                                instructions.pop_back();
+                                loopBeginStack.pop_back();
+                                instructions.emplace_back(IType::SetValue, 0);
+                            }
+                            else {
+                                std::uint64_t loopLength = instructions.size() - loopBeginStack.back();
+                                instructions.emplace_back(IType::LoopEnd, loopLength);
+                                instructions[loopBeginStack.back()].Value() = loopLength;
+                                loopBeginStack.pop_back();
+                            }
+                        }
+                        break; case '.': {
+                            pushPrevInstruction(IType::Nop);
+                            instructions.emplace_back(IType::Output);
+                        }
+                        break; case ',': {
+                            pushPrevInstruction(IType::Nop);
+                            instructions.emplace_back(IType::Input);
+                        }
+                    }
+                    ++i;
+                }
+            }
+
+            return instructions;
+        }
+    }
+
 
     void Interpreter::Run(std::string_view code)
     {
-        std::size_t pc = 0;
-        std::size_t mp = 0;
+        std::vector<Instruction> instructions = Parse(code);
 
-        while (pc < code.size()) {
-            switch (code[pc]) {
-                case '>':
-                    ++mp;
-                    break;
-                case '<':
-                    --mp;
-                    break;
-                case '+':
-                    ++mMemory[mp];
-                    break;
-                case '-':
-                    --mMemory[mp];
-                    break;
-                case '.':
-                    std::putchar(mMemory[mp]);
-                    break;
-                case ',':
-                    mMemory[mp] = std::getchar();
-                    break;
-                case '[':
-                    if (mMemory[mp] == 0) {
-                        std::size_t loop = 1;
-                        while (loop != 0) {
-                            ++pc;
-                            if (code[pc] == '[') {
-                                ++loop;
-                            } else if (code[pc] == ']') {
-                                --loop;
-                            }
-                        }
-                    }
-                    break;
-                case ']':
-                    if (mMemory[mp] != 0) {
-                        std::size_t loop = 1;
-                        while (loop != 0) {
-                            --pc;
-                            if (code[pc] == '[') {
-                                --loop;
-                            } else if (code[pc] == ']') {
-                                ++loop;
-                            }
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-            ++pc;
+        for (mMemory.ProgramCounter = 0; mMemory.ProgramCounter < instructions.size(); ++mMemory.ProgramCounter) {
+            instructions[mMemory.ProgramCounter].Execute(mMemory);
         }
     }
 
@@ -90,6 +148,6 @@ namespace BFCK
 
     void Interpreter::Reset()
     {
-        mMemory.assign(mMemory.size(), 0);
+        mMemory.Reset();
     }
 }
