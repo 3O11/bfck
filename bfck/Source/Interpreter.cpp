@@ -11,18 +11,9 @@ namespace BFCK
     {
         std::vector<Instruction> Parse(std::string_view code)
         {
-            std::string source {code};
-
-            // Remove ignored characters
-            std::erase_if(source, [](char c) {
-                return std::string("+-<>[],.").find(c) == std::string::npos;
-            });
-
             std::vector<Instruction> instructions;
 
-            // Parse
-            if (!source.empty())
-            {
+            if (!code.empty()) {
                 using IType = Instruction::Type;
 
                 Instruction inProgress(IType::Nop);
@@ -36,8 +27,8 @@ namespace BFCK
                 };
 
                 std::uint64_t i = 0;
-                while (i < source.size()) {
-                    switch (source[i]) {
+                while (i < code.size()) {
+                    switch (code[i]) {
                         break; case '+': {
                             if (inProgress.GetType() == IType::Increment) {
                                 ++inProgress.Value();
@@ -105,6 +96,9 @@ namespace BFCK
                         break; case ',': {
                             pushPrevInstruction(IType::Nop);
                             instructions.emplace_back(IType::Input);
+                        }
+                        break; default: {
+                            // Ignore
                         }
                     }
                     ++i;
