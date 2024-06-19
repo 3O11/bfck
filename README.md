@@ -19,3 +19,9 @@ TODO:
     - Memory size
     - Memory wrapping
     - [Extensions](https://esolangs.org/wiki/Brainfuck%2B)?
+
+Notes (for later):
+- Type erasure sucks for this
+- std::variant and its drawbacks (alignment)
+- Arbitrary limits (instruction size optimization)
+- The cost of optimization

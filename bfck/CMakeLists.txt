@@ -14,5 +14,6 @@ target_sources(bfck
     PRIVATE
         "Source/Utils.cpp"
         "Source/Interpreter.cpp"
+        "Source/Machine.cpp"
         "bfck.cpp"
 )

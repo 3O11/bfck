@@ -127,11 +127,11 @@ namespace BFCK
         if (!code) {
             switch (code.error()) {
                 break; case Utils::FileReadError::FileDoesNotExist:
-                    std::print("File does not exist.");
+                    std::println("File does not exist.");
                 break; case Utils::FileReadError::PathIsNotAFile:
-                    std::print("Path is not a file.");
+                    std::println("Path is not a file.");
                 break; case Utils::FileReadError::CouldNotOpenFile:
-                    std::print("Could not open file.");
+                    std::println("Could not open file.");
             }
             return;
         }
