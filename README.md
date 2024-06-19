@@ -13,7 +13,7 @@ TODO:
 - Error checking (currently checks almost nothing)
     - Non-matching `[]`
 - Get rid of unsafe indexing
-- Use a tree representation as IR
+- Use a tree as IR
 - Optimizations ([reference](http://calmerthanyouare.org/2015/01/07/optimizing-brainfuck.html))
 - Configuration
     - Memory size

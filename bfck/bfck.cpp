@@ -1,6 +1,6 @@
+#include "Interpreter.hpp"
 #include "Utils.hpp"
 #include "Compiler.hpp"
-#include "Interpreter.hpp"
 #include "Machine.hpp"
 
 #include <print>
@@ -30,9 +30,9 @@ int main (int argc, const char *argv[])
         return -1;
     }
 
+    BFCK::Utils::ScopedStopwatch sw(argv[1]);
     BFCK::Compiler compiler;
     BFCK::Machine::Program program = compiler.Compile(source.value());
-
     BFCK::Machine machine;
     machine.Execute(program);
 

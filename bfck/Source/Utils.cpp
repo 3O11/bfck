@@ -1,6 +1,7 @@
 #include "Utils.hpp"
 
 #include <fstream>
+#include <print>
 
 namespace BFCK::Utils
 {
@@ -26,5 +27,16 @@ namespace BFCK::Utils
         std::string content((it(file)), it());
         file.close();
         return content;
+    }
+
+    ScopedStopwatch::ScopedStopwatch(const std::string& name)
+        : mName(name), mStart(Clock::now())
+    {}
+
+    ScopedStopwatch::~ScopedStopwatch()
+    {
+        auto end = Clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - mStart);
+        std::println("{} took {}ms", mName, duration.count());
     }
 }

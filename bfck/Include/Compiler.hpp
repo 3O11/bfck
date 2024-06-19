@@ -52,6 +52,7 @@ namespace BFCK
     public:
         IR::Scope Parse(std::string_view source);
         void Optimize(IR::Scope& scope);
+        void Optimize(IR::Loop& loop);
         Machine::Program EmitInstruction(const IR::Instruction& instruction);
         Machine::Program Emit(IR::Scope& scope);
 
