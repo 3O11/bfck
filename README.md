@@ -22,6 +22,6 @@ TODO:
 
 Notes (for later):
 - Type erasure sucks for this
-- std::variant and its drawbacks (alignment)
+- std::variant and its drawbacks
 - Arbitrary limits (instruction size optimization)
 - The cost of optimization
