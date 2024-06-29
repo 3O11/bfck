@@ -29,7 +29,7 @@ namespace BFCK
         auto pushPrevInstruction = [&scope, &inProgress, &inProgressLoops](IR::Instruction&& next) {
             if (inProgress.index() != 0) {
                 if (inProgressLoops.size()) {
-                    inProgressLoops.back().Instructions.push_back(inProgress);
+                    inProgressLoops.back().Content.Instructions.push_back(inProgress);
                 }
                 else {
                     scope.Instructions.push_back(inProgress);
@@ -113,44 +113,20 @@ namespace BFCK
         for (auto& instruction : scope.Instructions) {
             if (instruction.index() == 7) { // IR::Loop
                 IR::Loop& loop = std::get<7>(instruction);
-                if (loop.Instructions.size() == 1) {
-                    if (loop.Instructions[0].index() == 1) { // IR::Increment
-                        if (std::get<1>(loop.Instructions[0]).Value == 1) {
+                if (loop.Content.Instructions.size() == 1) {
+                    if (loop.Content.Instructions[0].index() == 1) { // IR::Increment
+                        if (std::get<1>(loop.Content.Instructions[0]).Value == 1) {
                             instruction = IR::SetValue{0};
                         }
                     }
-                    else if (loop.Instructions[0].index() == 2) { // IR::Decrement
-                        if (std::get<2>(loop.Instructions[0]).Value == 1) {
-                            instruction = IR::SetValue{0};
-                        }
-                    }
-                }
-                else {
-                    Optimize(loop);
-                }
-            }
-        }
-    }
-
-    void Compiler::Optimize(IR::Loop& loop)
-    {
-        for (auto& instruction : loop.Instructions) {
-            if (instruction.index() == 7) { // IR::Loop
-                IR::Loop& innerLoop = std::get<7>(instruction);
-                if (innerLoop.Instructions.size() == 1) {
-                    if (innerLoop.Instructions[0].index() == 1) { // IR::Increment
-                        if (std::get<1>(innerLoop.Instructions[0]).Value == 1) {
-                            instruction = IR::SetValue{0};
-                        }
-                    }
-                    else if (innerLoop.Instructions[0].index() == 2) { // IR::Decrement
-                        if (std::get<2>(innerLoop.Instructions[0]).Value == 1) {
+                    else if (loop.Content.Instructions[0].index() == 2) { // IR::Decrement
+                        if (std::get<2>(loop.Content.Instructions[0]).Value == 1) {
                             instruction = IR::SetValue{0};
                         }
                     }
                 }
                 else {
-                    Optimize(innerLoop);
+                    Optimize(loop.Content);
                 }
             }
         }
@@ -186,10 +162,8 @@ namespace BFCK
                     program.push_back({Machine::Instruction::Type::LoopBegin, 0, 0, 0});
                     std::size_t loopBeginIndex = program.size() - 1;
                     std::uint32_t loopOffset = static_cast<std::uint32_t>(program.size());
-                    for (const auto& instr : loop.Instructions)
-                    {
-                        program.append_range(EmitInstruction(instr));
-                    }
+                    std::vector<Machine::Instruction> scopeResult = EmitInstruction(loop.Content);
+                    program.insert(program.end(), scopeResult.begin(), scopeResult.end());
                     loopOffset = static_cast<std::uint32_t>(program.size() - loopBeginIndex);
                     program[loopBeginIndex].Offset = loopOffset;
                     program.push_back({Machine::Instruction::Type::LoopEnd, 0, 0, loopOffset});
@@ -211,7 +185,8 @@ namespace BFCK
                 },
                 [&program, this](IR::Scope scope) {
                     for (const auto& instr : scope.Instructions) {
-                        program.append_range(EmitInstruction(instr));
+                        std::vector<Machine::Instruction> result = EmitInstruction(instr);
+                        program.insert(program.end(), result.begin(), result.end());
                     }
                 }
             }, instruction);

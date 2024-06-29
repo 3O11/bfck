@@ -42,8 +42,8 @@ namespace BFCK
             Scope
         >;
 
-        struct Loop { std::vector<Instruction> Instructions; };
         struct Scope { std::vector<Instruction> Instructions; };
+        struct Loop  { Scope Content; };
     }
 
     class Compiler
